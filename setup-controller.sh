@@ -4461,7 +4461,7 @@ openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-
 openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-address=10.11.10.24 testport4
 openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-address=10.11.10.25 testport5
 
-### IMAGE SETUP ###############################################################################
+### HEAD NODE ###############################################################################
 # See https://docs.openstack.org/project-install-guide/baremetal/draft/configure-glance-images.html
 wget -O /tmp/setup/OL7.vmdk https://clemson.box.com/shared/static/o00tqb3yzgscg8f156yt4gw0d5hf8v99
 # wget -O /tmp/setup/OL7.vmdk https://clemson.box.com/shared/static/5dukzod4ftj9v3g5r8q0ktxzweuj2vvw.vmdk
@@ -4474,11 +4474,10 @@ security_id=`openstack security group list -f value | grep $project_id | cut -d'
 
 # See https://docs.openstack.org/mitaka/install-guide-ubuntu/launch-instance-selfservice.html
 port_id=`openstack port list -f value | grep testport1 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id namenodeprime
-
+openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id headnodea
 
 port_id=`openstack port list -f value | grep testport2 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id namenodesecon
+openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id headnodeb
 
 port_id=`openstack port list -f value | grep testport3 | cut -d' ' -f 1`
 openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id datanodea
@@ -4489,8 +4488,9 @@ openstack server create --flavor m1.medium --security-group $security_id --image
 port_id=`openstack port list -f value | grep testport5 | cut -d' ' -f 1`
 openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id datanodec
 
-#rm /tmp/setup/OL7.vmdk
-#glance image-delete $image_id
+rm /tmp/setup/OL7.vmdk
+glance image-delete $image_id
+
 
 
 echo "***"
