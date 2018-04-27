@@ -4460,11 +4460,10 @@ openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-
 openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-address=10.11.10.23 testport3
 openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-address=10.11.10.24 testport4
 openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-address=10.11.10.25 testport5
-openstack port create --network ${network_id} --fixed-ip subnet=${subnet_id},ip-address=10.11.10.26 testport6
 
-### HEAD NODE ###############################################################################
+### IMAGE SETUP ###############################################################################
 # See https://docs.openstack.org/project-install-guide/baremetal/draft/configure-glance-images.html
-wget -O /tmp/setup/OL7.vmdk https://clemson.box.com/shared/static/o00tqb3yzgscg8f156yt4gw0d5hf8v99
+wget -O /tmp/setup/OL7.vmdk https://clemson.box.com/shared/static/s9lqub6qfxoqky9mt2amwgyuj3q54sye
 # wget -O /tmp/setup/OL7.vmdk https://clemson.box.com/shared/static/5dukzod4ftj9v3g5r8q0ktxzweuj2vvw.vmdk
 glance image-create --name OL7 --disk-format vmdk --visibility public --container-format bare < /tmp/setup/OL7.vmdk
 
@@ -4475,59 +4474,23 @@ security_id=`openstack security group list -f value | grep $project_id | cut -d'
 
 # See https://docs.openstack.org/mitaka/install-guide-ubuntu/launch-instance-selfservice.html
 port_id=`openstack port list -f value | grep testport1 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id headnode
-
-rm /tmp/setup/OL7.vmdk
-glance image-delete $image_id
-
-
-#############################################################################################
-### COMPUTE NODES ###
-#####################
-
-# https://clemson.box.com/s/nz9ft1f51p8ajgff4u5x4wfu76h9to8r
-wget -O /tmp/setup/OL7compute.vmdk https://clemson.box.com/shared/static/nz9ft1f51p8ajgff4u5x4wfu76h9to8r
-glance image-create --name OL7compute --disk-format vmdk --visibility public --container-format bare < /tmp/setup/OL7compute.vmdk
-
-project_id=`openstack project list -f value | grep admin | cut -d' ' -f 1`
-flavor_id=`openstack flavor list -f value | grep m1.small | cut -d' ' -f 1`
-image_id=`openstack image list -f value | grep OL7compute | cut -d' ' -f 1`
-security_id=`openstack security group list -f value | grep $project_id | cut -d' ' -f 1`
+openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id namenodeprime
 
 
 port_id=`openstack port list -f value | grep testport2 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7compute --nic port-id=$port_id computea
+openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id namenodesecon
 
 port_id=`openstack port list -f value | grep testport3 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7compute --nic port-id=$port_id computeb
+openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id datanodea
 
 port_id=`openstack port list -f value | grep testport4 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7compute --nic port-id=$port_id computec
-
-rm /tmp/setup/OL7compute.vmdk
-glance image-delete $image_id
-
-##########################################################################################
-### STORAGE NODES ###
-#####################
-# https://clemson.box.com/s/s9lqub6qfxoqky9mt2amwgyuj3q54sye
-wget -O /tmp/setup/OL7storage.vmdk https://clemson.box.com/shared/static/s9lqub6qfxoqky9mt2amwgyuj3q54sye
-glance image-create --name OL7storage --disk-format vmdk --visibility public --container-format bare < /tmp/setup/OL7storage.vmdk
-
-project_id=`openstack project list -f value | grep admin | cut -d' ' -f 1`
-flavor_id=`openstack flavor list -f value | grep m1.small | cut -d' ' -f 1`
-image_id=`openstack image list -f value | grep OL7storage | cut -d' ' -f 1`
-security_id=`openstack security group list -f value | grep $project_id | cut -d' ' -f 1`
-
+openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id datanodeb
 
 port_id=`openstack port list -f value | grep testport5 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7storage --nic port-id=$port_id storagea
+openstack server create --flavor m1.medium --security-group $security_id --image OL7 --nic port-id=$port_id datanodec
 
-port_id=`openstack port list -f value | grep testport6 | cut -d' ' -f 1`
-openstack server create --flavor m1.medium --security-group $security_id --image OL7storage --nic port-id=$port_id storageb
-
-rm /tmp/setup/OL7storage.vmdk
-glance image-delete $image_id
+#rm /tmp/setup/OL7.vmdk
+#glance image-delete $image_id
 
 
 echo "***"
